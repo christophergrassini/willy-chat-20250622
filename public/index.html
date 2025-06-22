@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>Chat con Willy</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 1em; }
+    #chat { border: 1px solid #ccc; padding: 1em; height: 300px; overflow: auto; }
+    .me { color: blue; font-weight: bold; }
+    .ai { color: darkgreen; }
+  </style>
+</head>
+<body>
+  <h1>Parla con Willy</h1>
+  <div id="chat"></div>
+  <textarea id="input" rows="2" style="width:100%"></textarea><br>
+  <button id="send">Invia</button>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const thread = [];
+
+    function add(role, text) {
+      const p = document.createElement("p");
+      p.className = role;
+      p.innerText = text;
+      chat.appendChild(p);
+      chat.scrollTop = chat.scrollHeight;
+      return p;
+    }
+
+    document.getElementById("send").onclick = async () => {
+      const text = input.value.trim();
+      if (!text) return;
+      thread.push({ role: "user", content: text });
+      add("me", text);
+      input.value = "";
+
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ thread })
+      });
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let assistant = "";
+      const p = add("ai", "");
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        assistant += chunk.replace(/data:/g, '');
+        p.innerText = assistant;
+      }
+
+      thread.push({ role: "assistant", content: assistant });
+    };
+  </script>
+</body>
+</html>
