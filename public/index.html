@@ -4,37 +4,117 @@
   <meta charset="utf-8">
   <title>Chat con Willy</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 1em; }
-    #chat { border: 1px solid #ccc; padding: 1em; height: 300px; overflow: auto; }
-    .me { color: blue; font-weight: bold; }
-    .ai { color: darkgreen; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f7f7f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      max-height: 500px;
+      overflow-y: auto;
+      background-color: #f2f2f2;
+    }
+
+    .message {
+      padding: 12px 16px;
+      margin: 10px 0;
+      border-radius: 8px;
+      max-width: 75%;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .message.user {
+      background-color: #d1e7ff;
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    .message.bot {
+      background-color: #e8e8e8;
+      align-self: flex-start;
+      text-align: left;
+    }
+
+    #message-form {
+      display: flex;
+      margin-top: 20px;
+    }
+
+    #input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 10px 16px;
+      font-size: 16px;
+      background-color: #10a37f;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h1>Parla con Willy</h1>
-  <div id="chat"></div>
-  <textarea id="input" rows="2" style="width:100%"></textarea><br>
-  <button id="send">Invia</button>
+  <div class="container">
+    <h1>Parla con Willy</h1>
+    <div class="chat-box" id="chat"></div>
+
+    <form id="message-form">
+      <textarea id="input" rows="2" placeholder="Scrivi un messaggio..."></textarea>
+      <button type="submit">Invia</button>
+    </form>
+  </div>
 
   <script>
     const chat = document.getElementById("chat");
     const input = document.getElementById("input");
+    const form = document.getElementById("message-form");
     const thread = [];
 
-    function add(role, text) {
-      const p = document.createElement("p");
-      p.className = role;
-      p.innerText = text;
-      chat.appendChild(p);
+    function addMessage(role, text) {
+      const div = document.createElement("div");
+      div.className = `message ${role === "user" ? "user" : "bot"}`;
+      div.textContent = text;
+      chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
-      return p;
+      return div;
     }
 
-    document.getElementById("send").onclick = async () => {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
       const text = input.value.trim();
       if (!text) return;
+
       thread.push({ role: "user", content: text });
-      add("me", text);
+      addMessage("user", text);
       input.value = "";
 
       const res = await fetch("/api/chat", {
@@ -46,22 +126,24 @@
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let assistant = "";
-      const p = add("ai", "");
+      const botMsg = addMessage("bot", "");
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+
         const chunk = decoder.decode(value);
         assistant += chunk
-  .split('\n')
-  .filter(line => line.startsWith('data: '))
-  .map(line => JSON.parse(line.replace('data: ', '')).choices[0]?.delta?.content || '')
-  .join('');
-        p.innerText = assistant;
+          .split('\n')
+          .filter(line => line.startsWith('data: '))
+          .map(line => JSON.parse(line.replace('data: ', '')).choices[0]?.delta?.content || '')
+          .join('');
+
+        botMsg.textContent = assistant;
       }
 
       thread.push({ role: "assistant", content: assistant });
-    };
+    });
   </script>
 </body>
 </html>
