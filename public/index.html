@@ -52,7 +52,11 @@
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value);
-        assistant += chunk.replace(/data:/g, '');
+        assistant += chunk
+  .split('\n')
+  .filter(line => line.startsWith('data: '))
+  .map(line => JSON.parse(line.replace('data: ', '')).choices[0]?.delta?.content || '')
+  .join('');
         p.innerText = assistant;
       }
 
