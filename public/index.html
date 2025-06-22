@@ -63,14 +63,29 @@ button{
 }
 button:hover{background:#0e8a6b}
 
-/* ----------   R E S P O N S I V E   ---------- */
-@media(max-width:600px){
+/* ----------  MOBILE ≤ 600 px  ---------- */
+@media (max-width:600px){
   h1{font-size:22px;margin:16px 0}
-  .chat-box{padding:16px 20px}
-  form{flex-direction:column}
-  textarea{font-size:15px;width:100%; padding:16px 20px}
+
+  /* margine laterale unico per TUTTO */
+  .container{padding:0 16px}
+
+  /* chat-box senza padding orizzontale extra */
+  .chat-box{
+    padding:16px 0;          /* 0 sui lati */
+    border-radius:8px;
+  }
+
+  /* form in colonna con stessi 16 px di margine */
+  form{flex-direction:column;margin-top:16px}
+
+  textarea{
+    width:100%;font-size:15px;
+    border-radius:8px;margin-bottom:10px;
+  }
+
   button{
-    width:100%;min-width:auto;font-size:17px;padding:14px 0;
+    width:100%;font-size:17px;padding:14px 0;
     display:flex;align-items:center;justify-content:center
   }
 }
