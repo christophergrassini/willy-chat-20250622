@@ -5,7 +5,7 @@
   <title>Chat con Willy</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: system-ui, sans-serif;
       background-color: #f7f7f8;
       margin: 0;
       padding: 0;
@@ -15,78 +15,85 @@
       max-width: 800px;
       margin: 40px auto;
       padding: 20px;
-      background-color: #fff;
+      background-color: #ffffff;
       border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
     }
 
     h1 {
       text-align: center;
-      color: #333;
+      color: #202123;
+      margin-bottom: 24px;
     }
 
     .chat-box {
       display: flex;
       flex-direction: column;
-      border: 1px solid #ddd;
+      gap: 12px;
+      border: 1px solid #e0e0e0;
       border-radius: 8px;
-      padding: 10px;
+      padding: 16px;
       max-height: 500px;
       overflow-y: auto;
-      background-color: #f2f2f2;
+      background-color: #f0f0f0;
     }
 
     .message {
       padding: 12px 16px;
-      margin: 10px 0;
-      border-radius: 8px;
+      border-radius: 12px;
+      white-space: pre-wrap;
       max-width: 75%;
       line-height: 1.5;
-      white-space: pre-wrap;
     }
 
-    .message.user {
+    .user {
       background-color: #d1e7ff;
       align-self: flex-end;
-      text-align: right;
+      text-align: left;
+      color: #000;
     }
 
-    .message.bot {
+    .bot {
       background-color: #e8e8e8;
       align-self: flex-start;
       text-align: left;
+      color: #202123;
     }
 
-    #message-form {
+    form {
       display: flex;
-      margin-top: 20px;
+      margin-top: 16px;
+      gap: 8px;
     }
 
-    #input {
+    textarea {
       flex: 1;
       padding: 10px;
       font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
+      resize: vertical;
     }
 
     button {
-      margin-left: 10px;
-      padding: 10px 16px;
-      font-size: 16px;
+      padding: 10px 20px;
       background-color: #10a37f;
       border: none;
       border-radius: 8px;
       color: white;
+      font-size: 16px;
       cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0e8a6b;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Parla con Willy</h1>
-    <div class="chat-box" id="chat"></div>
-
+    <div id="chat" class="chat-box"></div>
     <form id="message-form">
       <textarea id="input" rows="2" placeholder="Scrivi un messaggio..."></textarea>
       <button type="submit">Invia</button>
