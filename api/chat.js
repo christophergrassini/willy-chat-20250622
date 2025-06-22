@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const { thread } = req.body;
+  const thread = req.body.thread || [];
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -14,20 +14,19 @@ export default async function handler(req, res) {
     })
   });
 
-  if (!response.ok || !response.body) {
-    res.status(500).send("OpenAI error");
-    return;
-  }
-
-  res.setHeader("Content-Type", "text/event-stream");
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive"
+  });
 
   const reader = response.body.getReader();
-  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    res.write(encoder.encode("data:" + new TextDecoder().decode(value)));
+    res.write(`data: ${decoder.decode(value)}\n\n`);
   }
 
   res.end();
