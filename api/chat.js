@@ -1,37 +1,34 @@
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import OpenAI from 'openai';
+export default async function handler(req, res) {
+  const { thread } = req.body;
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-app.post('/chat', async (req, res) => {
-  const { thread = [] } = req.body;
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.flushHeaders();
-
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    stream: true,
-    messages: [
-      { role: 'system', content: 'Sei Willy, assistente F&B creato da Christopher. Rispondi in modo cordiale, competente e conciso.' },
-      ...thread
-    ]
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: thread,
+      stream: true
+    })
   });
 
-  for await (const chunk of completion) {
-    const token = chunk.choices[0]?.delta?.content || '';
-    if (token) res.write(`data:${token}\n\n`);
+  if (!response.ok || !response.body) {
+    res.status(500).send("OpenAI error");
+    return;
   }
 
-  res.write('event:done\ndata:\u2714\ufe0f\n\n');
+  res.setHeader("Content-Type", "text/event-stream");
+
+  const reader = response.body.getReader();
+  const encoder = new TextEncoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    res.write(encoder.encode("data:" + new TextDecoder().decode(value)));
+  }
+
   res.end();
-});
-
-app.listen(3001, () => console.log('✅ Server partito su http://localhost:3001'));
-
+}
